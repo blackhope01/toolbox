@@ -1,0 +1,8 @@
+{
+  "name": "Toolbox Dashboard",
+  "short_name": "ToolBox",
+  "start_url": "index.html",
+  "display": "standalone",
+  "scope": "/"
+}
+

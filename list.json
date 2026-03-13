@@ -1,0 +1,13 @@
+{
+  "manuel": [],
+  "pages": [
+    {
+      "title": "Elektrik Fatura Hesapla",
+      "path": "pages/araSayac/index.html"
+    },
+    {
+      "title": "Whois Analiz",
+      "path": "pages/whois/index.html"
+    }
+  ]
+}

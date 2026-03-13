@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js');
+    });
+  }
+</script>
+
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; font-family: 'Consolas', monospace; }
+        .main-title { color: #7cfc00; font-size: 2.5rem; font-weight: bold; margin-bottom: 2.5rem; }
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .tool-card { 
+            background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+            padding: 1.5rem; transition: 0.2s; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;
+        }
+        .tool-card:hover { border-color: #7cfc00; background: #1c2128; transform: translateY(-4px); }
+        .tool-title { color: #f0f6fc; font-size: 1.2rem; font-weight: bold; }
+        .tool-path { color: #8b949e; font-size: 0.75rem; opacity: 0.5; margin-top: 5px; word-break: break-all; }
+        .run-tag { margin-top: 1rem; font-size: 11px; color: #7cfc00; border: 1px solid rgba(124, 252, 0, 0.3); padding: 5px 12px; border-radius: 4px; width: fit-content; text-transform: uppercase; }
+    </style>
+</head>
+<body class="p-8 sm:p-16">
+
+    <div class="max-w-6xl mx-auto">
+        <h1 class="main-title">ToolBox</h1>
+        <div id="toolsGrid" class="tool-grid"></div>
+    </div>
+
+    <script>
+        async function init() {
+            const grid = document.getElementById('toolsGrid');
+            try {
+                const res = await fetch('list.json');
+                const data = await res.json();
+
+                // Manuel ve Pages listelerini birleştir
+                const allItems = [...data.manuel, ...data.pages];
+
+                allItems.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'tool-card';
+                    card.onclick = () => window.location.href = item.path;
+                    card.innerHTML = `
+                        <div>
+                            <div class="tool-title">${item.title}</div>
+                            <div class="tool-path">${item.path}</div>
+                        </div>
+                        <div class="run-tag">Sayfaya Git</div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (e) {
+                grid.innerHTML = '<p class="text-red-500 font-mono">HATA: list.json yüklenemedi.</p>';
+            }
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>
+

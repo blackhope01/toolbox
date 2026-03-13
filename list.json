@@ -13,6 +13,10 @@
     {
       "title": "Whois Analiz",
       "path": "pages/whois/index.html"
+    },
+    {
+      "title": "Icon Resizer",
+      "path": "pages/iconResizer/index.html"
     }
   ]
 }

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Icon Resizer</title>
+    <style>
+        /* Modern Reset ve Scroll Engelleme */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden; /* Yatay scroll engellendi */
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            margin: 40px auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #7cfc00;
+            font-size: 2rem;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .info-text {
+            color: #8b949e; 
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        /* Önizleme Alanı */
+        .preview-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .canvas-container {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: #0d1117; /* İç arka plan da tek renk */
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid #30363d;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            display: none;
+        }
+
+        #placeholder {
+            color: #8b949e;
+            font-size: 0.85rem;
+        }
+
+        /* Kontroller */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .size-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #161b22;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+        }
+
+        .size-row label {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+        input[type="number"] {
+            background: transparent;
+            border: none;
+            color: #7cfc00;
+            font-size: 1.1rem;
+            font-weight: bold;
+            width: 80px;
+            text-align: right;
+            outline: none;
+        }
+
+        /* Butonlar */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #7cfc00;
+            color: #000;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            margin-top: 5px;
+        }
+
+        .btn-outline:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Icon Resizer</h1>
+            <p class="info-text"><!--description--></p>
+
+    <div class="preview-card">
+        <div class="canvas-container">
+            <span id="placeholder">Görsel seçimi bekleniyor...</span>
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="file" id="fileInput" accept="image/*">
+        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">GÖRSEL SEÇ</button>
+
+        <div class="size-row">
+            <label>Çıktı Boyutu</label>
+            <div>
+                <input type="number" id="targetSize" value="512" min="16" max="2048">
+                <span style="color: #8b949e;">px</span>
+            </div>
+        </div>
+
+        <button class="btn btn-outline" id="downloadBtn" disabled>PNG OLARAK İNDİR</button>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const targetSizeInput = document.getElementById('targetSize');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const placeholder = document.getElementById('placeholder');
+
+    let img = new Image();
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            img.onload = () => {
+                updateCanvas();
+                placeholder.style.display = 'none';
+                canvas.style.display = 'block';
+                downloadBtn.disabled = false;
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    targetSizeInput.addEventListener('input', updateCanvas);
+
+    function updateCanvas() {
+        if (!img.src) return;
+
+        const size = parseInt(targetSizeInput.value) || 512;
+        canvas.width = size;
+        canvas.height = size;
+
+        // Yüksek Kalite Ayarları
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        ctx.clearRect(0, 0, size, size);
+
+        const scale = Math.min(size / img.width, size / img.height);
+        const x = (size / 2) - (img.width / 2) * scale;
+        const y = (size / 2) - (img.height / 2) * scale;
+
+        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+    }
+
+    downloadBtn.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = `iconResizer-${canvas.width}x${canvas.width}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+</script>
+
+</body>
+</html>
+

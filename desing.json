@@ -1,0 +1,100 @@
+{
+  "design_system": {
+    "version": "1.2.0",
+    "global_settings": {
+      "mobile": {
+        "status_bar": "black-translucent",
+        "navigation_bar_color": "#0f172a",
+        "theme_color": "#0d1117",
+        "viewport_fit": "cover"
+      }
+    },
+    "libraries": {
+      "design_1": {
+        "name": "Neon Minimalist",
+        "concept": "Dark Tech & High Contrast",
+        "styles": {
+          "background": "#0d1117",
+          "surface": "#161b22",
+          "accent": "#7cfc00",
+          "border": "#30363d",
+          "text_primary": "#c9d1d9",
+          "text_secondary": "#8b949e"
+        },
+        "typography": {
+          "family": "Segoe UI, system-ui, sans-serif",
+          "heading_weight": "700",
+          "letter_spacing": "-1.5px"
+        },
+        "components": {
+          "button": "Outline style with accent color border",
+          "layout": "Left-aligned headings with modular cards"
+        }
+      },
+      "design_2": {
+        "name": "Glassmorphism & Blue Glow",
+        "concept": "Futuristic & Layered Energy",
+        "styles": {
+          "background": "radial-gradient(circle at top right, #1e293b, #0f172a)",
+          "system_bg_fallback": "#0f172a",
+          "glass": "rgba(30, 41, 59, 0.7)",
+          "accent": "#3b82f6",
+          "accent_glow": "rgba(59, 130, 246, 0.4)",
+          "text_primary": "#f8fafc",
+          "text_dim": "#94a3b8",
+          "heading_gradient": "linear-gradient(to bottom, #ffffff, #94a3b8)"
+        },
+        "typography": {
+          "family": "Inter, system-ui, sans-serif",
+          "heading_weight": "800",
+          "heading_size": "24px",
+          "letter_spacing": "-0.5px"
+        },
+        "effects": {
+          "blur": "16px",
+          "border": "1px solid rgba(255, 255, 255, 0.08)",
+          "container_shadow": "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+          "button_shadow": "0 10px 15px -3px rgba(59, 130, 246, 0.4)"
+        },
+        "components": {
+          "button": "Solid glow-button with hover scale (1.02)",
+          "container": "Centered glass-container with 28px rounded corners",
+          "preview_box": "Dashed blue border with interactive hover state"
+        }
+      },
+      "design_3": {
+        "name": "Cyber-Glass Neon",
+        "concept": "High-Contrast Glassmorphism",
+        "styles": {
+          "background": "radial-gradient(circle at center, #161b22 0%, #0d1117 100%)",
+          "surface": "rgba(22, 27, 34, 0.8)",
+          "accent": "#7cfc00",
+          "accent_glow": "rgba(124, 252, 0, 0.3)",
+          "border": "rgba(124, 252, 0, 0.2)",
+          "text_primary": "#f8fafc",
+          "text_secondary": "#8b949e",
+          "placeholder_bg": "rgba(0, 0, 0, 0.4)"
+        },
+        "typography": {
+          "family": "Segoe UI, Inter, system-ui, sans-serif",
+          "heading_weight": "800",
+          "letter_spacing": "-1px",
+          "label_size": "0.7rem"
+        },
+        "effects": {
+          "blur": "12px",
+          "container_shadow": "0 20px 40px rgba(0, 0, 0, 0.6)",
+          "accent_shadow": "0 0 15px rgba(124, 252, 0, 0.3)",
+          "border_radius_main": "20px",
+          "border_radius_inner": "12px"
+        },
+        "components": {
+          "upload_area": "Dashed neon-green border with dark glass interior",
+          "button": "Hybrid outline-glow style with hover-scale (1.02)",
+          "input": "Black background with neon border focus"
+        }
+      }
+    }
+  }
+}
+

@@ -2,243 +2,239 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <meta name="theme-color" content="#0d1117">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <title>Icon Resizer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+
     <style>
-        /* Modern Reset ve Scroll Engelleme */
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+        :root {
+            --bg: radial-gradient(circle at center, #161b22 0%, #0d1117 100%);
+            --system-bg: #0d1117;
+            --surface: rgba(22, 27, 34, 0.9);
+            --accent: #7cfc00;
+            --accent-glow: rgba(124, 252, 0, 0.3);
+            --border-neon: rgba(124, 252, 0, 0.2);
+            --text-primary: #f8fafc;
+            --text-secondary: #8b949e;
+            --radius-main: 20px;
+            --radius-inner: 12px;
         }
 
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: #0d1117;
-            color: #c9d1d9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden; /* Yatay scroll engellendi */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html { background-color: var(--system-bg); overflow-y: scroll; height: -webkit-fill-available; }
+        body { background: var(--bg); background-attachment: fixed; min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: 'Segoe UI', sans-serif; color: var(--text-primary); padding: 40px 20px; }
+
+        .container { width: 100%; max-width: 420px; background: var(--surface); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--border-neon); border-radius: var(--radius-main); padding: 30px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); }
+
+        h1 { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 15px var(--accent-glow); }
+
+        .file-info { text-align: center; margin-bottom: 15px; min-height: 24px; }
+        #file-name-display { font-family: monospace; font-size: 11px; color: var(--accent); background: rgba(124, 252, 0, 0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border-neon); visibility: hidden; }
+
+        .upload-zone { width: 100%; aspect-ratio: 1 / 1; background: rgba(0, 0, 0, 0.5); border: 2px dashed var(--accent); border-radius: var(--radius-inner); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; overflow: hidden; margin-bottom: 15px; touch-action: none; }
+        #upload-icon { font-size: 50px; color: var(--accent); margin-bottom: 10px; }
+        #upload-text { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: 2px; }
+        #cropper-wrapper { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        #image-to-crop { display: block; max-width: 100%; }
+
+        /* YENİ: KIRPMA MODU SEÇİCİ */
+        .crop-mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
-        .container {
-            width: 90%;
-            max-width: 400px;
-            margin: 40px auto;
-            text-align: center;
-        }
-
-        h1 {
-            color: #7cfc00;
-            font-size: 2rem;
-            margin-bottom: 8px;
-            letter-spacing: -1px;
-        }
-
-        .info-text {
-            color: #8b949e; 
-            font-size: 0.9rem;
-            margin-bottom: 30px;
-            line-height: 1.4;
-        }
-
-        /* Önizleme Alanı */
-        .preview-card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 25px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-
-        .canvas-container {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            background-color: #0d1117; /* İç arka plan da tek renk */
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 1px solid #30363d;
-        }
-
-        canvas {
-            max-width: 100%;
-            max-height: 100%;
-            display: none;
-        }
-
-        #placeholder {
-            color: #8b949e;
-            font-size: 0.85rem;
-        }
-
-        /* Kontroller */
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 100%;
-        }
-
-        .size-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #161b22;
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: 1px solid #30363d;
-        }
-
-        .size-row label {
-            color: #8b949e;
-            font-size: 0.9rem;
-        }
-
-        input[type="number"] {
-            background: transparent;
-            border: none;
-            color: #7cfc00;
-            font-size: 1.1rem;
-            font-weight: bold;
-            width: 80px;
-            text-align: right;
-            outline: none;
-        }
-
-        /* Butonlar */
-        .btn {
-            width: 100%;
-            padding: 16px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 1rem;
+        .mode-option {
+            background: #000;
+            border: 1px solid var(--border-neon);
+            border-radius: 10px;
+            padding: 12px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border: none;
+            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn-primary {
-            background-color: #7cfc00;
+        .mode-option.active {
             color: #000;
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
         }
 
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-            margin-top: 5px;
-        }
+        .controls-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        label { display: block; color: var(--text-secondary); font-size: 10px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
+        input[type="number"] { width: 100%; background: #000; border: 1px solid var(--border-neon); border-radius: 10px; padding: 14px; color: var(--accent); font-weight: 700; outline: none; }
 
-        .btn-outline:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
+        .btn-group { display: flex; gap: 10px; }
+        .btn { flex: 1; background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn:hover:not(:disabled) { background: var(--accent); color: #000; }
+        .btn:disabled { opacity: 0.2; }
+        .btn-secondary { border-color: #30363d; color: #8b949e; }
 
-        .btn:active {
-            transform: scale(0.97);
-        }
-
-        input[type="file"] {
-            display: none;
-        }
+        #file-input { display: none; }
+        
+        /* Cropper Customization */
+        .cropper-view-box { outline: 2px solid var(--accent); }
+        .cropper-line, .cropper-point { background-color: var(--accent); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Icon Resizer</h1>
-            <p class="info-text"><!--description--></p>
-
-    <div class="preview-card">
-        <div class="canvas-container">
-            <span id="placeholder">Görsel seçimi bekleniyor...</span>
-            <canvas id="canvas"></canvas>
+    <div class="container">
+        <h1>Icon Resizer</h1>
+        
+        <div class="file-info">
+            <span id="file-name-display">dosya.png</span>
         </div>
-    </div>
+        
+        <div class="upload-zone" id="drop-zone" onclick="if(!cropper) document.getElementById('file-input').click()">
+            <div id="cropper-wrapper">
+                <img id="image-to-crop" src="#">
+            </div>
+            
+            <div id="upload-prompt" style="display: flex; flex-direction: column; align-items: center;">
+                <i class="fa-solid fa-cloud-arrow-up" id="upload-icon"></i>
+                <span id="upload-text">GÖRSEL YÜKLE</span>
+            </div>
+            
+            <input type="file" id="file-input" accept="image/*">
+        </div>
 
-    <div class="controls">
-        <input type="file" id="fileInput" accept="image/*">
-        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">GÖRSEL SEÇ</button>
-
-        <div class="size-row">
-            <label>Çıktı Boyutu</label>
-            <div>
-                <input type="number" id="targetSize" value="512" min="16" max="2048">
-                <span style="color: #8b949e;">px</span>
+        <div class="crop-mode-selector">
+            <div class="mode-option active" id="mode-square" onclick="setCropMode('square')">
+                <i class="fa-solid fa-square"></i> KARE
+            </div>
+            <div class="mode-option" id="mode-free" onclick="setCropMode('free')">
+                <i class="fa-solid fa-expand-arrows-alt"></i> SERBEST
             </div>
         </div>
 
-        <button class="btn btn-outline" id="downloadBtn" disabled>PNG OLARAK İNDİR</button>
+        <div class="controls-group">
+            <div class="input-item">
+                <label>Genişlik (px)</label>
+                <input type="number" id="width-input" value="512">
+            </div>
+            <div class="input-item">
+                <label>Yükseklik (px)</label>
+                <input type="number" id="height-input" value="512">
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-secondary" id="reset-btn" disabled>SIFIRLA</button>
+            <button class="btn" id="download-btn" disabled>
+                <i class="fa-solid fa-bolt"></i> İNDİR
+            </button>
+        </div>
     </div>
-</div>
 
-<script>
-    const fileInput = document.getElementById('fileInput');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const targetSizeInput = document.getElementById('targetSize');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const placeholder = document.getElementById('placeholder');
+    <canvas id="canvas" style="display:none;"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
-    let img = new Image();
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const uploadPrompt = document.getElementById('upload-prompt');
+        const cropperWrapper = document.getElementById('cropper-wrapper');
+        const imageToCrop = document.getElementById('image-to-crop');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const widthInput = document.getElementById('width-input');
+        const heightInput = document.getElementById('height-input');
+        const downloadBtn = document.getElementById('download-btn');
+        const resetBtn = document.getElementById('reset-btn');
 
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const modeSquare = document.getElementById('mode-square');
+        const modeFree = document.getElementById('mode-free');
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            img.onload = () => {
-                updateCanvas();
-                placeholder.style.display = 'none';
-                canvas.style.display = 'block';
-                downloadBtn.disabled = false;
-            };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
+        let cropper = null;
+        let currentFileName = "icon.png";
+        let currentCropMode = 'square'; // Varsayılan mod
 
-    targetSizeInput.addEventListener('input', updateCanvas);
+        // Kırpma Modunu Ayarla
+        function setCropMode(mode) {
+            currentCropMode = mode;
+            
+            // UI Güncelle
+            [modeSquare, modeFree].forEach(opt => opt.classList.remove('active'));
+            if (mode === 'square') {
+                modeSquare.classList.add('active');
+            } else {
+                modeFree.classList.add('active');
+            }
 
-    function updateCanvas() {
-        if (!img.src) return;
+            // Cropper'ı Güncelle (Eğer aktifse)
+            if (cropper) {
+                if (mode === 'square') {
+                    cropper.setAspectRatio(1);
+                } else {
+                    cropper.setAspectRatio(NaN); // Serbest oran
+                }
+            }
+        }
 
-        const size = parseInt(targetSizeInput.value) || 512;
-        canvas.width = size;
-        canvas.height = size;
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentFileName = file.name;
+                fileNameDisplay.textContent = currentFileName;
+                fileNameDisplay.style.visibility = 'visible';
 
-        // Yüksek Kalite Ayarları
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    if (cropper) cropper.destroy();
 
-        ctx.clearRect(0, 0, size, size);
+                    imageToCrop.src = event.target.result;
+                    uploadPrompt.style.display = 'none';
+                    cropperWrapper.style.display = 'block';
+                    
+                    cropper = new Cropper(imageToCrop, {
+                        // Başlangıç moduna göre oran ayarla
+                        aspectRatio: (currentCropMode === 'square') ? 1 : NaN,
+                        viewMode: 1,
+                        background: false,
+                        autoCropArea: 1,
+                        ready() {
+                            downloadBtn.disabled = false;
+                            resetBtn.disabled = false;
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
-        const scale = Math.min(size / img.width, size / img.height);
-        const x = (size / 2) - (img.width / 2) * scale;
-        const y = (size / 2) - (img.height / 2) * scale;
+        resetBtn.addEventListener('click', () => cropper && cropper.reset());
 
-        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-    }
+        downloadBtn.addEventListener('click', function() {
+            if (!cropper) return;
+            const targetWidth = parseInt(widthInput.value) || 512;
+            const targetHeight = parseInt(heightInput.value) || 512;
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: targetWidth,
+                height: targetHeight,
+                imageSmoothingQuality: 'high'
+            });
 
-    downloadBtn.addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.download = `iconResizer-${canvas.width}x${canvas.width}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    });
-</script>
-
+            const baseName = currentFileName.split('.').slice(0, -1).join('.') || 'icon';
+            const link = document.createElement('a');
+            link.download = `${baseName}-${targetWidth}x${targetHeight}.png`;
+            link.href = croppedCanvas.toDataURL('image/png');
+            link.click();
+        });
+    </script>
 </body>
 </html>
 

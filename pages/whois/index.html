@@ -2,89 +2,233 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whois Analiz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <title>Whois Analyzer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { background-color: #0d1117; color: #c9d1d9; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; overflow-x: hidden; }
-        .terminal-box { border: 1px solid #30363d; background: #161b22; border-radius: 8px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
-        
-        /* Satır Düzeni */
-        .info-row { display: flex; flex-direction: column; margin-bottom: 12px; line-height: 1.4; font-size: 15px; }
-        @media (min-width: 640px) {
-            .info-row { flex-direction: row; margin-bottom: 8px; }
-            .label { min-width: 180px; flex-shrink: 0; }
-            .divider { display: inline; margin-right: 15px; }
-        }
-        
-        .label { color: #8b949e; font-weight: bold; }
-        .divider { display: none; }
-        .value { color: #e6edf3; word-break: break-all; }
-        
-        /* Dinamik Bölüm Çizgileri */
-        .section-header { 
-            display: flex; align-items: center; color: #39d353; font-weight: bold; margin: 25px 0 15px 0; font-size: 14px;
-        }
-        .section-header::after {
-            content: ""; flex: 1; margin-left: 10px; height: 1px; background: rgba(57, 211, 83, 0.3);
+        :root {
+            --bg: radial-gradient(circle at center, #161b22 0%, #0d1117 100%);
+            --system-bg: #0d1117;
+            --surface: rgba(22, 27, 34, 0.9);
+            --accent: #7cfc00;
+            --accent-glow: rgba(124, 252, 0, 0.3);
+            --border-neon: rgba(124, 252, 0, 0.2);
+            --text-primary: #f8fafc;
+            --text-secondary: #8b949e;
+            --blur: 14px;
         }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            background-color: var(--system-bg);
+            /* Çek-Yenile özelliğini tetiklemek için kritik */
+            overscroll-behavior-y: auto; 
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: var(--bg);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Consolas', monospace;
+            color: var(--text-primary);
+            padding: 20px;
+            /* Sorgu yokken scroll oluşmaz, içerik uzarsa otomatik açılır */
+            overflow-y: auto; 
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--border-neon);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            margin: auto;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 6px;
+            border: 1px solid var(--border-neon);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            transition: 0.3s;
+        }
+        
+        .input-group:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--accent);
+            padding: 10px 12px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .btn-search {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .result-header-area {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .result-title {
+            color: #3b82f6;
+            font-weight: 900;
+            letter-spacing: 0.4em;
+            font-size: 16px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .result-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent);
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .result-box {
+            display: none;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .section-header {
+            display: flex; align-items: center; color: var(--accent); font-weight: 800; 
+            margin: 20px 0 12px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .section-header::after { content: ""; flex: 1; margin-left: 10px; height: 1px; background: var(--border-neon); }
+
+        .info-row {
+            display: flex; flex-direction: column; margin-bottom: 12px; font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 8px;
+        }
+
+        @media (min-width: 400px) {
+            .info-row { flex-direction: row; justify-content: space-between; }
+            .value { text-align: right; max-width: 60%; }
+        }
+
+        .label { color: var(--text-secondary); font-weight: 600; font-size: 13px; }
+        .value { color: var(--text-primary); word-break: break-all; }
+        .value.ip { color: var(--accent); font-family: monospace; font-weight: bold; }
+
+        #loading { color: #eab308; font-size: 13px; text-align: center; display: none; margin: 15px 0; font-style: italic; }
         .blink { animation: blinker 1s linear infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
+
+        .status-badge {
+            background: rgba(124, 252, 0, 0.1);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+        }
     </style>
 </head>
-<body class="p-4 sm:p-12">
+<body>
 
-    <div class="max-w-3xl mx-auto">
-        <h1 class="text-2xl font-bold text-white mb-4 ml-1 tracking-tight">Whois</h1>
+    <div class="container">
+        <h1>Whois Analyzer</h1>
 
-        <div class="flex flex-col sm:flex-row mb-10 gap-2 bg-[#161b22] p-2 border border-[#30363d] rounded-lg shadow-xl">
-            <div class="flex items-center px-2 flex-1">
-                <span class="text-blue-500 font-bold mr-3">❯</span>
-                <input type="text" id="domainInput" placeholder="domain.com" 
-                       class="bg-transparent border-none w-full text-white text-lg focus:outline-none focus:ring-0"
-                       onkeypress="if(event.key === 'Enter') analyzeDomain()">
-            </div>
-            <button onclick="analyzeDomain()" class="bg-[#238636] hover:bg-[#2ea043] text-white px-8 py-2 rounded font-bold transition-all active:scale-95">
-                SORGULA
+        <div class="input-group">
+            <input type="text" id="domainInput" placeholder="domain.com" autocomplete="off" onkeypress="if(event.key === 'Enter') analyzeDomain()">
+            <button class="btn-search" onclick="analyzeDomain()">
+                <i class="fa-solid fa-magnifying-glass"></i>
             </button>
         </div>
 
-        <div class="terminal-box p-6 sm:p-10">
-            <div class="text-blue-400 font-bold mb-8 text-center text-xl tracking-[0.3em] border-b border-blue-900/30 pb-4">
-                RESULT
+        <div id="result-header" class="result-header-area">
+            <div class="result-title">RESULT</div>
+            <div class="result-divider"></div>
+        </div>
+
+        <div id="loading">
+            <span class="blink">[*]</span> VERİLER ANALİZ EDİLİYOR...
+        </div>
+
+        <div id="output" class="result-box">
+            <div class="text-center mb-6">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest">Analiz Edilen Hedef</span>
+                <div id="out-target" class="text-lg font-black text-white border-b-2 border-green-500 inline-block px-4">DOMAIN.COM</div>
             </div>
 
-            <div id="loading" class="hidden text-yellow-500 mb-6 italic text-sm">
-                <span class="mr-2">[*]</span> Veriler toplanıyor...
+            <h2 class="section-header">DOMAİN KİMLİĞİ</h2>
+            <div class="info-row"><span class="label">Alan Adı</span><span class="value" id="out-domain"></span></div>
+            <div class="info-row"><span class="label">Kayıt Tarihi</span><span class="value" id="out-reg"></span></div>
+            <div class="info-row"><span class="label">Bitiş Tarihi</span><span class="value" id="out-exp"></span></div>
+            <div class="info-row"><span class="label">Kayıt Firması</span><span class="value" id="out-registrar"></span></div>
+
+            <h2 class="section-header">TEKNİK ALTYAPI</h2>
+            <div class="info-row"><span class="label">IP Adresi</span><span class="value ip" id="out-ip"></span></div>
+            <div class="info-row"><span class="label">Konum</span><span class="value" id="out-loc"></span></div>
+            <div class="info-row">
+                <span class="label">DNS Listesi</span>
+                <div id="out-dns" class="value text-[12px] italic text-gray-400"></div>
             </div>
 
-            <div id="output" style="display:none;">
-                <p class="text-yellow-500 mb-6 font-bold text-sm sm:text-base flex items-center">
-                    <span class="text-gray-500 mr-2">[*]</span> HEDEF: <span id="out-target" class="ml-2 text-white border-b border-yellow-900"></span>
-                </p>
-
-                <h2 class="section-header">DOMAİN KİMLİĞİ</h2>
-                <div class="info-row"><span class="label">Alan Adı</span><span class="divider">:</span><span class="value" id="out-domain"></span></div>
-                <div class="info-row"><span class="label">Kayıt Tarihi</span><span class="divider">:</span><span class="value" id="out-reg"></span></div>
-                <div class="info-row"><span class="label">Bitiş Tarihi</span><span class="divider">:</span><span class="value" id="out-exp"></span></div>
-                <div class="info-row"><span class="label">Kayıt Firması</span><span class="divider">:</span><span class="value" id="out-registrar"></span></div>
-
-                <h2 class="section-header">TEKNİK ALTYAPI</h2>
-                <div class="info-row"><span class="label">Sunucu IP</span><span class="divider">:</span><span class="value text-blue-400 font-bold" id="out-ip"></span></div>
-                <div class="info-row"><span class="label">Konum</span><span class="divider">:</span><span class="value" id="out-loc"></span></div>
-                <div class="info-row">
-                    <span class="label">DNS Sunucuları</span><span class="divider">:</span>
-                    <div id="out-dns" class="text-gray-400 italic flex flex-col text-sm pt-1 sm:pt-0"></div>
-                </div>
-
-                <h2 class="section-header">GÜVENLİK DURUMU</h2>
-                <div class="info-row">
-                    <span class="label">Durum</span><span class="divider">:</span>
-                    <div>
-                        <span id="out-status" class="inline-block px-3 py-1 bg-green-900/20 text-green-400 border border-green-800/50 rounded text-[11px] font-bold uppercase tracking-tighter"></span>
-                    </div>
-                </div>
+            <h2 class="section-header">GÜVENLİK DURUMU</h2>
+            <div class="info-row">
+                <span class="label">Status</span>
+                <div><span id="out-status" class="status-badge">AKTİF</span></div>
             </div>
         </div>
     </div>
@@ -97,14 +241,15 @@
 
             const loading = document.getElementById('loading');
             const output = document.getElementById('output');
-            
-            loading.classList.remove('hidden');
+
+            loading.style.display = 'block';
             output.style.display = 'none';
+
             document.getElementById('out-target').innerText = domain.toUpperCase();
 
             try {
                 const rdapRes = await fetch(`https://rdap.org/domain/${domain}`);
-                if (!rdapRes.ok) throw new Error();
+                if (!rdapRes.ok) throw new Error("Hata");
                 const rdapData = await rdapRes.json();
 
                 const dnsRes = await fetch(`https://dns.google/resolve?name=${domain}`);
@@ -127,21 +272,21 @@
                 document.getElementById('out-registrar').innerText = rdapData.entities?.[0]?.vcardArray?.[1]?.[1]?.[3] || "Gizli / Özel";
                 document.getElementById('out-ip').innerText = ipAddress;
                 document.getElementById('out-loc').innerText = location;
-                
+
                 const nsList = rdapData.nameservers || [];
-                document.getElementById('out-dns').innerHTML = nsList.length > 0 
-                    ? nsList.map(ns => `<span>• ${ns.ldhName.toLowerCase()}</span>`).join('')
-                    : "<span>Veri yok</span>";
+                document.getElementById('out-dns').innerHTML = nsList.length > 0
+                    ? nsList.map(ns => `<div>• ${ns.ldhName.toLowerCase()}</div>`).join('')
+                    : "Veri yok";
 
-                const status = rdapData.status ? rdapData.status[0] : "Aktif";
-                document.getElementById('out-status').innerText = status.includes('clientTransferProhibited') ? "GÜVENLİ (Kilitli)" : status;
+                const statusArr = rdapData.status || ["Aktif"];
+                document.getElementById('out-status').innerText = statusArr[0].includes('clientTransferProhibited') ? "GÜVENLİ (KİLİTLİ)" : statusArr[0].toUpperCase();
 
-                loading.classList.add('hidden');
+                loading.style.display = 'none';
                 output.style.display = 'block';
 
             } catch (error) {
-                loading.classList.add('hidden');
-                alert("Domain bilgisi alınamadı. Lütfen geçerli bir domain girin.");
+                loading.style.display = 'none';
+                alert("Veri alınamadı. Domain adresini kontrol edin.");
             }
         }
     </script>

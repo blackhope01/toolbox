@@ -1,5 +1,10 @@
 {
-  "manuel": [],
+  "manuel": [
+    {
+      "title": "github",
+      "path": "https://github.com"
+    }
+  ],
   "pages": [
     {
       "title": "Elektrik Fatura Hesapla",

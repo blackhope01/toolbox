@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Elektrik Fatura Hesapla</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        // Kapsamı bu klasörle sınırlıyoruz
+        navigator.serviceWorker.register('sw.js', { scope: './' });
+      }
+    </script>
+
+</head>
+<body>
+    <div class="glass-container">
+        <div class="history-wrapper">
+            <button id="historyBtn" class="icon-btn" title="Geçmiş">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+            </button>
+        </div>
+
+        <header>
+            <div class="logo-icon">
+
+                    <svg width="70" height="70" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));">
+    <defs>
+        <linearGradient id="boltGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#60a5fa; stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#2563eb; stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    
+    <circle cx="12" cy="12" r="11" fill="rgba(59, 130, 246, 0.1)" />
+
+    <path d="M13 2L4 14H11L10 22L19 10H12L13 2Z" 
+          fill="url(#boltGradient)" 
+          stroke="#3b82f6" 
+          stroke-width="1.2" 
+          stroke-linejoin="round" />
+</svg>
+
+                </div>
+            <h1>Fatura Hesapla</h1>
+            <p>Elektrik ara sayaç fatura hesaplama</p>
+        </header>
+
+        <section class="card">
+            <label class="file-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px;"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M9 11h6"/></svg>
+                <span>Fatura PDF Yükle</span>
+                <input type="file" id="pdfUpload" accept="application/pdf">
+            </label>
+            <div id="status" class="status">Dosya bekleniyor..</div>
+        </section>
+
+        <section class="form-grid">
+            <div class="input-box">
+                <label>Fatura Tutarı (₺)</label>
+                <input type="number" id="toplamFatura" step="0.01" placeholder="0.00">
+            </div>
+            <div class="input-box">
+                <label>Toplam Tüketim (kWh)</label>
+                <input type="number" id="toplamKwh" step="0.001" placeholder="0.000">
+            </div>
+        </section>
+
+        <section class="card secondary">
+            <h2 class="card-title" style="font-size: 14px; color: var(--accent); margin-bottom: 15px; text-transform: uppercase;">Ara Sayaç Bilgileri</h2>
+            <div class="input-box">
+                <label>İlk Endeks</label>
+                <input type="number" id="araIlkEndeks" step="0.001" placeholder="0000.000">
+            </div>
+            <div class="input-box">
+                <label>Son Endeks</label>
+                <input type="number" id="araSonEndeks" step="0.001" placeholder="0000.000">
+            </div>
+        </section>
+
+        <button id="calculateBtn" class="glow-button">Hesapla</button>
+
+        <div id="resultCard" class="result-card hidden">
+            <span class="res-title">Ara Sayaç Ödemesi</span>
+            <div id="araSayacBorc" class="res-value">₺0,00</div>
+            <div id="araTuketimBilgi" class="res-sub">Tüketim: 0 kWh</div>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Endeks Geçmişi</h3>
+                <button id="closeHistory" class="close-btn">&times;</button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

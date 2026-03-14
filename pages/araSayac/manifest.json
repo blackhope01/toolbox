@@ -2,7 +2,7 @@
   "name": "Ara Sayaç",
   "short_name": "Ara Sayaç",
   "start_url": "index.html",
-  "scope": "./",
+  "scope": "/toolbox/pages/araSayac/",
   "display": "standalone",
   "theme_color": "#7cfc00",
   "background_color": "#0d1117",

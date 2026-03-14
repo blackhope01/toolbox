@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    
+
     <meta name="theme-color" content="#0d1117">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="msapplication-navbutton-color" content="#0f172a">
 
-    <title>ToolBox</title>
+    <title>ToolBox Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -23,7 +22,6 @@
     </script>
 
     <style>
-        /* Design 3: Cyber-Glass Neon */
         :root {
             --bg: radial-gradient(circle at center, #161b22 0%, #0d1117 100%);
             --system-bg: #0d1117;
@@ -36,9 +34,7 @@
             --blur: 16px;
         }
 
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { -webkit-tap-highlight-color: transparent; }
 
         body {
             background: var(--bg);
@@ -47,6 +43,8 @@
             color: var(--text-primary);
             font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
 
         .main-title {
@@ -60,11 +58,8 @@
             text-align: center;
         }
 
-        .main-title span {
-            color: var(--accent);
-        }
+        .main-title span { color: var(--accent); }
 
-        /* Tool Grid & Cards */
         .tool-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -76,7 +71,7 @@
             backdrop-filter: blur(var(--blur));
             -webkit-backdrop-filter: blur(var(--blur));
             border: 1px solid var(--border-neon);
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 1.8rem;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
@@ -88,26 +83,45 @@
             overflow: hidden;
         }
 
-        .tool-card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(124, 252, 0, 0.05));
-            pointer-events: none;
-        }
-
         .tool-card:hover {
             border-color: var(--accent);
             transform: translateY(-8px) scale(1.02);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 15px var(--accent-glow);
         }
 
+        /* FAVORİ YILDIZ BUTONU */
+        .fav-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            z-index: 20;
+            padding: 8px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.2);
+            line-height: 0;
+        }
+
+        .fav-btn:hover {
+            color: #ffca28;
+            background: rgba(255, 202, 40, 0.1);
+            transform: scale(1.2);
+        }
+
+        .fav-btn.active {
+            color: #ffca28;
+            text-shadow: 0 0 12px rgba(255, 202, 40, 0.6);
+        }
+
         .tool-title {
             color: var(--text-primary);
-            font-size: 1.3rem;
+            font-size: 1.35rem;
             font-weight: 800;
             letter-spacing: -0.5px;
             margin-bottom: 8px;
+            padding-right: 30px; /* Yıldızla çakışmaması için */
         }
 
         .tool-path {
@@ -116,9 +130,10 @@
             font-family: 'Consolas', monospace;
             background: rgba(0,0,0,0.3);
             padding: 4px 8px;
-            border-radius: 4px;
+            border-radius: 6px;
             display: inline-block;
             word-break: break-all;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .run-tag {
@@ -127,7 +142,7 @@
             color: var(--accent);
             border: 1px solid var(--accent);
             padding: 6px 14px;
-            border-radius: 8px;
+            border-radius: 10px;
             width: fit-content;
             text-transform: uppercase;
             font-weight: 800;
@@ -139,18 +154,16 @@
         .tool-card:hover .run-tag {
             background: var(--accent);
             color: #000;
-            box-shadow: 0 0 10px var(--accent);
+            box-shadow: 0 0 15px var(--accent);
         }
 
-        /* Hata Mesajı */
         .error-msg {
             background: rgba(255, 0, 0, 0.1);
             border: 1px solid rgba(255, 0, 0, 0.3);
             color: #ff4444;
             padding: 20px;
-            border-radius: 12px;
+            border-radius: 16px;
             text-align: center;
-            font-family: monospace;
         }
     </style>
 </head>
@@ -158,54 +171,98 @@
 
     <div class="max-w-6xl mx-auto">
         <h1 class="main-title">TOOL<span>BOX</span></h1>
-        
-        <div id="toolsGrid" class="tool-grid">
-            </div>
+        <div id="toolsGrid" class="tool-grid"></div>
     </div>
 
     <script>
+        // Favorileri LocalStorage'dan al
+        let favorites = JSON.parse(localStorage.getItem('toolbox_favs')) || [];
+
         async function init() {
             const grid = document.getElementById('toolsGrid');
             try {
                 const res = await fetch('list.json');
-                if (!res.ok) throw new Error('Network response was not ok');
+                if (!res.ok) throw new Error('Liste yüklenemedi');
                 const data = await res.json();
 
-                // Manuel ve Pages listelerini birleştir
                 const allItems = [...(data.manuel || []), ...(data.pages || [])];
-
+                
                 if (allItems.length === 0) {
-                    grid.innerHTML = '<p class="text-center opacity-50">Henüz araç eklenmemiş.</p>';
+                    grid.innerHTML = '<p class="text-center opacity-50 col-span-full">Henüz araç eklenmemiş.</p>';
                     return;
                 }
 
-                grid.innerHTML = ''; // İçeriği temizle
-
-                allItems.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'tool-card';
-                    card.onclick = () => window.location.href = item.path;
-                    card.innerHTML = `
-                        <div>
-                            <div class="tool-title">${item.title}</div>
-                            <div class="tool-path">${item.path}</div>
-                        </div>
-                        <div class="run-tag">
-                            <i class="fa-solid fa-chevron-right mr-2"></i>Sayfaya Git
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
+                renderTools(allItems);
             } catch (e) {
                 grid.innerHTML = `
                     <div class="error-msg col-span-full">
                         <i class="fa-solid fa-triangle-exclamation mb-2 text-2xl"></i><br>
-                        HATA: list.json dosyasına erişilemedi veya dosya formatı hatalı.
+                        HATA: list.json dosyasına erişilemedi.
                     </div>
                 `;
-                console.error("ToolBox Error:", e);
             }
         }
+
+        function toggleFav(e, path) {
+            e.stopPropagation(); // Karta gitmeyi engelle
+            
+            const index = favorites.indexOf(path);
+            if (index !== -1) {
+                // Zaten favoriyse çıkar
+                favorites.splice(index, 1);
+            } else {
+                // Yeni favoriyi EN BAŞA ekle (En son eklenen en üstte)
+                favorites.unshift(path);
+            }
+            
+            localStorage.setItem('toolbox_favs', JSON.stringify(favorites));
+            init(); // Listeyi anlık olarak yeniden sırala ve render et
+        }
+
+        function renderTools(items) {
+            const grid = document.getElementById('toolsGrid');
+            grid.innerHTML = '';
+
+            // SIRALAMA MANTIĞI
+            items.sort((a, b) => {
+                const indexA = favorites.indexOf(a.path);
+                const indexB = favorites.indexOf(b.path);
+
+                const isAFav = indexA !== -1;
+                const isBFav = indexB !== -1;
+
+                // İkisi de favoriyse, favorites dizisindeki sırasına (indexine) göre diz
+                if (isAFav && isBFav) return indexA - indexB;
+                
+                // Sadece biri favoriyse, o üste çıksın
+                if (isAFav) return -1;
+                if (isBFav) return 1;
+
+                return 0; // Hiçbiri favori değilse orijinal sırayı bozma
+            });
+
+            items.forEach(item => {
+                const isFav = favorites.includes(item.path);
+                const card = document.createElement('div');
+                card.className = 'tool-card';
+                card.onclick = () => window.location.href = item.path;
+                
+                card.innerHTML = `
+                    <div class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, '${item.path}')">
+                        <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-star"></i>
+                    </div>
+                    <div>
+                        <div class="tool-title">${item.title}</div>
+                        <div class="tool-path">${item.path}</div>
+                    </div>
+                    <div class="run-tag">
+                        <i class="fa-solid fa-chevron-right mr-2"></i>Sayfaya Git
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
         window.onload = init;
     </script>
 </body>

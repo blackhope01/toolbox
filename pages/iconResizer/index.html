@@ -43,53 +43,27 @@
         #cropper-wrapper { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         #image-to-crop { display: block; max-width: 100%; }
 
-        /* YENİ: KIRPMA MODU SEÇİCİ */
-        .crop-mode-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .mode-option {
-            background: #000;
-            border: 1px solid var(--border-neon);
-            border-radius: 10px;
-            padding: 12px;
-            color: var(--text-secondary);
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.3s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .mode-option.active {
-            color: #000;
-            background: var(--accent);
-            border-color: var(--accent);
-            box-shadow: 0 0 15px var(--accent);
-        }
+        .crop-mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .mode-option { background: #000; border: 1px solid var(--border-neon); border-radius: 10px; padding: 12px; color: var(--text-secondary); font-size: 11px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .mode-option.active { color: #000; background: var(--accent); border-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
 
         .controls-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         label { display: block; color: var(--text-secondary); font-size: 10px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
-        input[type="number"] { width: 100%; background: #000; border: 1px solid var(--border-neon); border-radius: 10px; padding: 14px; color: var(--accent); font-weight: 700; outline: none; }
+        input[type="number"] { width: 100%; background: #000; border: 1px solid var(--border-neon); border-radius: 10px; padding: 14px; color: var(--accent); font-weight: 700; outline: none; transition: 0.3s; }
+        input[type="number"]:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--border-neon); }
 
         .btn-group { display: flex; gap: 10px; }
-        .btn { flex: 1; background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .btn:hover:not(:disabled) { background: var(--accent); color: #000; }
-        .btn:disabled { opacity: 0.2; }
+        .btn { flex: 1; background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; }
+        .btn:hover:not(:disabled) { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent-glow); }
+        .btn:disabled { opacity: 0.2; cursor: not-allowed; }
         .btn-secondary { border-color: #30363d; color: #8b949e; }
 
         #file-input { display: none; }
         
         /* Cropper Customization */
-        .cropper-view-box { outline: 2px solid var(--accent); }
+        .cropper-view-box { outline: 2px solid var(--accent); transition: border-radius 0.3s ease; }
         .cropper-line, .cropper-point { background-color: var(--accent); }
+        .cropper-face { background-color: transparent !important; }
     </style>
 </head>
 <body>
@@ -132,6 +106,10 @@
                 <label>Yükseklik (px)</label>
                 <input type="number" id="height-input" value="512">
             </div>
+            <div class="input-item" style="grid-column: span 2;">
+                <label>Köşe Yumuşatma (Radius - px)</label>
+                <input type="number" id="radius-input" value="0" min="0" placeholder="Örn: 80">
+            </div>
         </div>
 
         <div class="btn-group">
@@ -142,7 +120,6 @@
         </div>
     </div>
 
-    <canvas id="canvas" style="display:none;"></canvas>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <script>
@@ -153,6 +130,7 @@
         const fileNameDisplay = document.getElementById('file-name-display');
         const widthInput = document.getElementById('width-input');
         const heightInput = document.getElementById('height-input');
+        const radiusInput = document.getElementById('radius-input');
         const downloadBtn = document.getElementById('download-btn');
         const resetBtn = document.getElementById('reset-btn');
 
@@ -161,13 +139,10 @@
 
         let cropper = null;
         let currentFileName = "icon.png";
-        let currentCropMode = 'square'; // Varsayılan mod
+        let currentCropMode = 'square';
 
-        // Kırpma Modunu Ayarla
         function setCropMode(mode) {
             currentCropMode = mode;
-            
-            // UI Güncelle
             [modeSquare, modeFree].forEach(opt => opt.classList.remove('active'));
             if (mode === 'square') {
                 modeSquare.classList.add('active');
@@ -175,15 +150,18 @@
                 modeFree.classList.add('active');
             }
 
-            // Cropper'ı Güncelle (Eğer aktifse)
             if (cropper) {
-                if (mode === 'square') {
-                    cropper.setAspectRatio(1);
-                } else {
-                    cropper.setAspectRatio(NaN); // Serbest oran
-                }
+                cropper.setAspectRatio(mode === 'square' ? 1 : NaN);
             }
         }
+
+        // Radius değişimini canlı önizle
+        radiusInput.addEventListener('input', function() {
+            const viewBox = document.querySelector('.cropper-view-box');
+            if (viewBox) {
+                viewBox.style.borderRadius = this.value + 'px';
+            }
+        });
 
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -201,7 +179,6 @@
                     cropperWrapper.style.display = 'block';
                     
                     cropper = new Cropper(imageToCrop, {
-                        // Başlangıç moduna göre oran ayarla
                         aspectRatio: (currentCropMode === 'square') ? 1 : NaN,
                         viewMode: 1,
                         background: false,
@@ -209,6 +186,8 @@
                         ready() {
                             downloadBtn.disabled = false;
                             resetBtn.disabled = false;
+                            // Mevcut radius değerini önizlemeye uygula
+                            document.querySelector('.cropper-view-box').style.borderRadius = radiusInput.value + 'px';
                         }
                     });
                 };
@@ -216,22 +195,55 @@
             }
         });
 
-        resetBtn.addEventListener('click', () => cropper && cropper.reset());
+        resetBtn.addEventListener('click', () => {
+            if(cropper) {
+                cropper.reset();
+                radiusInput.value = 0;
+                document.querySelector('.cropper-view-box').style.borderRadius = '0px';
+            }
+        });
 
         downloadBtn.addEventListener('click', function() {
             if (!cropper) return;
+            
             const targetWidth = parseInt(widthInput.value) || 512;
             const targetHeight = parseInt(heightInput.value) || 512;
+            const radius = parseInt(radiusInput.value) || 0;
+
+            // 1. Kırpılmış ham görseli al
             const croppedCanvas = cropper.getCroppedCanvas({
                 width: targetWidth,
                 height: targetHeight,
                 imageSmoothingQuality: 'high'
             });
 
+            // 2. Yeni bir transparan canvas oluştur (Radius uygulamak için)
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = targetWidth;
+            finalCanvas.height = targetHeight;
+            const ctx = finalCanvas.getContext('2d');
+
+            // 3. Yuvarlak Köşe Maskesi Çiz
+            ctx.beginPath();
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(targetWidth - radius, 0);
+            ctx.quadraticCurveTo(targetWidth, 0, targetWidth, radius);
+            ctx.lineTo(targetWidth, targetHeight - radius);
+            ctx.quadraticCurveTo(targetWidth, targetHeight, targetWidth - radius, targetHeight);
+            ctx.lineTo(radius, targetHeight);
+            ctx.quadraticCurveTo(0, targetHeight, 0, targetHeight - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+            
+            ctx.clip(); // Maskeyi uygula
+            ctx.drawImage(croppedCanvas, 0, 0); // Görseli maskenin içine çiz
+
+            // 4. İndir
             const baseName = currentFileName.split('.').slice(0, -1).join('.') || 'icon';
             const link = document.createElement('a');
             link.download = `${baseName}-${targetWidth}x${targetHeight}.png`;
-            link.href = croppedCanvas.toDataURL('image/png');
+            link.href = finalCanvas.toDataURL('image/png');
             link.click();
         });
     </script>

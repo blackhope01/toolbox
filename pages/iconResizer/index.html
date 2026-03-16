@@ -3,12 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    
-    <meta name="theme-color" content="#0d1117">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <title>Icon Resizer</title>
+    <title>Icon Resizer Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 
@@ -31,26 +26,25 @@
         body { background: var(--bg); background-attachment: fixed; min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: 'Segoe UI', sans-serif; color: var(--text-primary); padding: 40px 20px; }
 
         .container { width: 100%; max-width: 420px; background: var(--surface); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--border-neon); border-radius: var(--radius-main); padding: 30px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); }
-
         h1 { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 15px var(--accent-glow); }
 
         .file-info { text-align: center; margin-bottom: 15px; min-height: 24px; }
         #file-name-display { font-family: monospace; font-size: 11px; color: var(--accent); background: rgba(124, 252, 0, 0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border-neon); visibility: hidden; }
 
-        .upload-zone { width: 100%; aspect-ratio: 1 / 1; background: rgba(0, 0, 0, 0.5); border: 2px dashed var(--accent); border-radius: var(--radius-inner); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; overflow: hidden; margin-bottom: 15px; touch-action: none; }
+        .upload-zone { width: 100%; aspect-ratio: 1 / 1; background: #000; border: 2px dashed var(--accent); border-radius: var(--radius-inner); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; overflow: hidden; margin-bottom: 15px; }
+        #bg-preview-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; transition: 0.3s; }
+        #cropper-wrapper { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 5; }
+        #image-to-crop { display: block; max-width: 100%; }
+        #upload-prompt { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
         #upload-icon { font-size: 50px; color: var(--accent); margin-bottom: 10px; }
         #upload-text { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: 2px; }
-        #cropper-wrapper { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-        #image-to-crop { display: block; max-width: 100%; }
 
-        .crop-mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .mode-option { background: #000; border: 1px solid var(--border-neon); border-radius: 10px; padding: 12px; color: var(--text-secondary); font-size: 11px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .mode-option.active { color: #000; background: var(--accent); border-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
+        .svg-input-group { margin-bottom: 20px; }
+        textarea { width: 100%; background: #000; border: 1px solid var(--border-neon); border-radius: 10px; padding: 12px; color: var(--accent); font-family: monospace; font-size: 11px; outline: none; resize: none; height: 60px; }
 
         .controls-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         label { display: block; color: var(--text-secondary); font-size: 10px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
-        input[type="number"] { width: 100%; background: #000; border: 1px solid var(--border-neon); border-radius: 10px; padding: 14px; color: var(--accent); font-weight: 700; outline: none; transition: 0.3s; }
-        input[type="number"]:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--border-neon); }
+        input[type="number"], input[type="text"] { width: 100%; background: #000; border: 1px solid var(--border-neon); border-radius: 10px; padding: 14px; color: var(--accent); font-weight: 700; outline: none; }
 
         .btn-group { display: flex; gap: 10px; }
         .btn { flex: 1; background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; }
@@ -59,71 +53,47 @@
         .btn-secondary { border-color: #30363d; color: #8b949e; }
 
         #file-input { display: none; }
-        
-        /* Cropper Customization */
         .cropper-view-box { outline: 2px solid var(--accent); transition: border-radius 0.3s ease; }
-        .cropper-line, .cropper-point { background-color: var(--accent); }
-        .cropper-face { background-color: transparent !important; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Icon Resizer</h1>
+        <h1>Icon Resizer Pro</h1>
+        <div class="file-info"><span id="file-name-display">Görsel Bekleniyor...</span></div>
         
-        <div class="file-info">
-            <span id="file-name-display">dosya.png</span>
-        </div>
-        
-        <div class="upload-zone" id="drop-zone" onclick="if(!cropper) document.getElementById('file-input').click()">
-            <div id="cropper-wrapper">
-                <img id="image-to-crop" src="#">
-            </div>
-            
-            <div id="upload-prompt" style="display: flex; flex-direction: column; align-items: center;">
+        <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+            <div id="bg-preview-layer"></div>
+            <div id="cropper-wrapper"><img id="image-to-crop" src="#"></div>
+            <div id="upload-prompt">
                 <i class="fa-solid fa-cloud-arrow-up" id="upload-icon"></i>
-                <span id="upload-text">GÖRSEL YÜKLE</span>
+                <span id="upload-text">GÖRSEL SEÇ VEYA SVG YAPIŞTIR</span>
             </div>
-            
             <input type="file" id="file-input" accept="image/*">
         </div>
 
-        <div class="crop-mode-selector">
-            <div class="mode-option active" id="mode-square" onclick="setCropMode('square')">
-                <i class="fa-solid fa-square"></i> KARE
-            </div>
-            <div class="mode-option" id="mode-free" onclick="setCropMode('free')">
-                <i class="fa-solid fa-expand-arrows-alt"></i> SERBEST
-            </div>
+        <div class="svg-input-group">
+            <label>SVG KODU YAPIŞTIR</label>
+            <textarea id="svg-text-input" placeholder="<svg ... </svg>"></textarea>
         </div>
 
         <div class="controls-group">
-            <div class="input-item">
-                <label>Genişlik (px)</label>
-                <input type="number" id="width-input" value="512">
-            </div>
-            <div class="input-item">
-                <label>Yükseklik (px)</label>
-                <input type="number" id="height-input" value="512">
-            </div>
-            <div class="input-item" style="grid-column: span 2;">
-                <label>Köşe Yumuşatma (Radius - px)</label>
-                <input type="number" id="radius-input" value="0" min="0" placeholder="Örn: 80">
-            </div>
+            <div class="input-item"><label>Genişlik</label><input type="number" id="width-input" value="512"></div>
+            <div class="input-item"><label>Yükseklik</label><input type="number" id="height-input" value="512"></div>
+            <div class="input-item"><label>Radius</label><input type="number" id="radius-input" value="0"></div>
+            <div class="input-item"><label>Arkaplan HEX</label><input type="text" id="bg-hex-input" placeholder="#HEX"></div>
         </div>
 
         <div class="btn-group">
             <button class="btn btn-secondary" id="reset-btn" disabled>SIFIRLA</button>
-            <button class="btn" id="download-btn" disabled>
-                <i class="fa-solid fa-bolt"></i> İNDİR
-            </button>
+            <button class="btn" id="download-btn" disabled><i class="fa-solid fa-bolt"></i> İNDİR</button>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-
     <script>
         const fileInput = document.getElementById('file-input');
+        const svgTextInput = document.getElementById('svg-text-input');
         const uploadPrompt = document.getElementById('upload-prompt');
         const cropperWrapper = document.getElementById('cropper-wrapper');
         const imageToCrop = document.getElementById('image-to-crop');
@@ -131,118 +101,114 @@
         const widthInput = document.getElementById('width-input');
         const heightInput = document.getElementById('height-input');
         const radiusInput = document.getElementById('radius-input');
+        const bgHexInput = document.getElementById('bg-hex-input');
+        const bgPreviewLayer = document.getElementById('bg-preview-layer');
         const downloadBtn = document.getElementById('download-btn');
         const resetBtn = document.getElementById('reset-btn');
 
-        const modeSquare = document.getElementById('mode-square');
-        const modeFree = document.getElementById('mode-free');
-
         let cropper = null;
         let currentFileName = "icon.png";
-        let currentCropMode = 'square';
 
-        function setCropMode(mode) {
-            currentCropMode = mode;
-            [modeSquare, modeFree].forEach(opt => opt.classList.remove('active'));
-            if (mode === 'square') {
-                modeSquare.classList.add('active');
-            } else {
-                modeFree.classList.add('active');
-            }
-
-            if (cropper) {
-                cropper.setAspectRatio(mode === 'square' ? 1 : NaN);
-            }
+        function loadToCropper(url, name) {
+            currentFileName = name;
+            fileNameDisplay.textContent = name;
+            fileNameDisplay.style.visibility = 'visible';
+            if (cropper) cropper.destroy();
+            imageToCrop.src = url;
+            uploadPrompt.style.display = 'none';
+            cropperWrapper.style.display = 'block';
+            cropper = new Cropper(imageToCrop, {
+                viewMode: 1,
+                background: false,
+                autoCropArea: 1,
+                ready() {
+                    downloadBtn.disabled = false;
+                    resetBtn.disabled = false;
+                    updatePreviewRadius();
+                }
+            });
         }
 
-        // Radius değişimini canlı önizle
-        radiusInput.addEventListener('input', function() {
+        function updatePreviewRadius() {
             const viewBox = document.querySelector('.cropper-view-box');
-            if (viewBox) {
-                viewBox.style.borderRadius = this.value + 'px';
+            if (viewBox) viewBox.style.borderRadius = radiusInput.value + 'px';
+        }
+
+        radiusInput.addEventListener('input', updatePreviewRadius);
+
+        svgTextInput.addEventListener('input', function() {
+            const svgCode = this.value.trim();
+            if (svgCode.startsWith('<svg')) {
+                const blob = new Blob([svgCode], {type: 'image/svg+xml;charset=utf-8'});
+                const url = URL.createObjectURL(blob);
+                loadToCropper(url, "svg-icon.png");
             }
         });
 
-        fileInput.addEventListener('change', function(e) {
+        fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                currentFileName = file.name;
-                fileNameDisplay.textContent = currentFileName;
-                fileNameDisplay.style.visibility = 'visible';
-
                 const reader = new FileReader();
-                reader.onload = function(event) {
-                    if (cropper) cropper.destroy();
-
-                    imageToCrop.src = event.target.result;
-                    uploadPrompt.style.display = 'none';
-                    cropperWrapper.style.display = 'block';
-                    
-                    cropper = new Cropper(imageToCrop, {
-                        aspectRatio: (currentCropMode === 'square') ? 1 : NaN,
-                        viewMode: 1,
-                        background: false,
-                        autoCropArea: 1,
-                        ready() {
-                            downloadBtn.disabled = false;
-                            resetBtn.disabled = false;
-                            // Mevcut radius değerini önizlemeye uygula
-                            document.querySelector('.cropper-view-box').style.borderRadius = radiusInput.value + 'px';
-                        }
-                    });
-                };
+                reader.onload = (event) => loadToCropper(event.target.result, file.name);
                 reader.readAsDataURL(file);
             }
         });
 
-        resetBtn.addEventListener('click', () => {
-            if(cropper) {
-                cropper.reset();
-                radiusInput.value = 0;
-                document.querySelector('.cropper-view-box').style.borderRadius = '0px';
-            }
+        bgHexInput.addEventListener('input', (e) => {
+            let val = e.target.value.trim();
+            if (val === '') { bgPreviewLayer.style.background = 'transparent'; return; }
+            if (!val.startsWith('#')) val = '#' + val;
+            if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(val)) bgPreviewLayer.style.background = val;
         });
+
+        resetBtn.addEventListener('click', () => location.reload());
 
         downloadBtn.addEventListener('click', function() {
             if (!cropper) return;
-            
-            const targetWidth = parseInt(widthInput.value) || 512;
-            const targetHeight = parseInt(heightInput.value) || 512;
-            const radius = parseInt(radiusInput.value) || 0;
+            const targetW = parseInt(widthInput.value) || 512;
+            const targetH = parseInt(heightInput.value) || 512;
+            const r = parseInt(radiusInput.value) || 0;
+            let bgColor = bgHexInput.value.trim();
+            if (bgColor !== '' && !bgColor.startsWith('#')) bgColor = '#' + bgColor;
 
-            // 1. Kırpılmış ham görseli al
-            const croppedCanvas = cropper.getCroppedCanvas({
-                width: targetWidth,
-                height: targetHeight,
-                imageSmoothingQuality: 'high'
-            });
-
-            // 2. Yeni bir transparan canvas oluştur (Radius uygulamak için)
+            // Kırpılmış alanı al
+            const croppedCanvas = cropper.getCroppedCanvas();
             const finalCanvas = document.createElement('canvas');
-            finalCanvas.width = targetWidth;
-            finalCanvas.height = targetHeight;
+            finalCanvas.width = targetW;
+            finalCanvas.height = targetH;
             const ctx = finalCanvas.getContext('2d');
 
-            // 3. Yuvarlak Köşe Maskesi Çiz
-            ctx.beginPath();
-            ctx.moveTo(radius, 0);
-            ctx.lineTo(targetWidth - radius, 0);
-            ctx.quadraticCurveTo(targetWidth, 0, targetWidth, radius);
-            ctx.lineTo(targetWidth, targetHeight - radius);
-            ctx.quadraticCurveTo(targetWidth, targetHeight, targetWidth - radius, targetHeight);
-            ctx.lineTo(radius, targetHeight);
-            ctx.quadraticCurveTo(0, targetHeight, 0, targetHeight - radius);
-            ctx.lineTo(0, radius);
-            ctx.quadraticCurveTo(0, 0, radius, 0);
-            ctx.closePath();
-            
-            ctx.clip(); // Maskeyi uygula
-            ctx.drawImage(croppedCanvas, 0, 0); // Görseli maskenin içine çiz
+            // --- MERKEZLEME HESAPLAMASI ---
+            const scale = Math.min(targetW / croppedCanvas.width, targetH / croppedCanvas.height);
+            const drawW = croppedCanvas.width * scale;
+            const drawH = croppedCanvas.height * scale;
+            const drawX = (targetW - drawW) / 2;
+            const drawY = (targetH - drawH) / 2;
 
-            // 4. İndir
-            const baseName = currentFileName.split('.').slice(0, -1).join('.') || 'icon';
+            // 1. Yuvarlak Köşe Maskesi
+            ctx.beginPath();
+            ctx.moveTo(r, 0); ctx.lineTo(targetW - r, 0);
+            ctx.quadraticCurveTo(targetW, 0, targetW, r);
+            ctx.lineTo(targetW, targetH - r);
+            ctx.quadraticCurveTo(targetW, targetH, targetW - r, targetH);
+            ctx.lineTo(r, targetH);
+            ctx.quadraticCurveTo(0, targetH, 0, targetH - r);
+            ctx.lineTo(0, r);
+            ctx.quadraticCurveTo(0, 0, r, 0);
+            ctx.closePath();
+            ctx.clip();
+
+            // 2. Arkaplan Rengi
+            if (bgColor !== '' && /^#([A-Fa-f0-9]{3}){1,2}$/.test(bgColor)) {
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, targetW, targetH);
+            }
+
+            // 3. Resmi MERKEZLEYEREK çiz
+            ctx.drawImage(croppedCanvas, drawX, drawY, drawW, drawH);
+
             const link = document.createElement('a');
-            link.download = `${baseName}-${targetWidth}x${targetHeight}.png`;
+            link.download = `${currentFileName.split('.')[0]}.png`;
             link.href = finalCanvas.toDataURL('image/png');
             link.click();
         });

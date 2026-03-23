@@ -1,0 +1,32 @@
+<svg width="1000" height="800" viewBox="0 0 1000 800" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1000" height="800" fill="#0D1117"/>
+
+  <text x="500" y="400"
+        font-family="Arial, sans-serif"
+        font-weight="900"
+        font-size="140"
+        letter-spacing="-2"
+        text-anchor="middle"
+        dominant-baseline="middle">
+    <tspan fill="#FFFFFF">TOOL</tspan><tspan fill="#7CFF00">BOX</tspan>
+  </text>
+
+  <rect x="350" y="480" width="300" height="8" fill="#3D7E1D"/>
+</svg>
+
+# TRANSPARAN
+
+<svg width="1000" height="800" viewBox="0 0 1000 800" xmlns="http://www.w3.org/2000/svg">
+  <text x="500" y="400" 
+        font-family="Arial, sans-serif" 
+        font-weight="900" 
+        font-size="140" 
+        letter-spacing="-2" 
+        text-anchor="middle" 
+        dominant-baseline="middle">
+    <tspan fill="#FFFFFF">TOOL</tspan><tspan fill="#7CFF00">BOX</tspan>
+  </text>
+  
+  <rect x="350" y="480" width="300" height="8" fill="#3D7E1D"/>
+</svg>
+
